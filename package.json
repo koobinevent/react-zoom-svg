@@ -1,0 +1,48 @@
+{
+  "name": "@koobin/react-interaction",
+  "version": "0.0.1",
+  "author": "Oriol Colomer Aragonés <oriol.colomer@koobin.com>",
+  "contributors": [
+    "David Asensio Cañas <david.asensio@koobin.com>"
+  ],
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist"
+  ],
+  "main": "dist/",
+  "scripts": {
+    "dev": "start-storybook -p 6006",
+    "prebuild": "rimraf dist/",
+    "build": "babel src --out-dir dist",
+    "prepare": "yarn run build"
+  },
+  "dependencies": {
+    "prop-types": "^15.7.2",
+    "react-fast-compare": "^2.0.4",
+    "react-use": "^13.2.0",
+    "transformation-matrix": "^2.1.1"
+  },
+  "peerDependencies": {
+    "react": "^16.8.6",
+    "react-dom": "^16.8.6"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.6.4",
+    "@babel/core": "^7.6.4",
+    "@babel/plugin-transform-runtime": "^7.6.2",
+    "@babel/preset-env": "^7.6.3",
+    "@babel/preset-react": "^7.6.3",
+    "@storybook/addon-actions": "^5.2.5",
+    "@storybook/addon-links": "^5.2.5",
+    "@storybook/addons": "^5.2.5",
+    "@storybook/react": "^5.2.5",
+    "babel-loader": "^8.0.6",
+    "babel-plugin-annotate-pure-calls": "^0.4.0",
+    "babel-plugin-preval": "^3.0.1",
+    "babel-plugin-transform-react-remove-prop-types": "^0.4.24",
+    "rimraf": "^3.0.0"
+  }
+}

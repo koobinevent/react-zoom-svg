@@ -8,6 +8,7 @@ import {
   identity
 } from 'transformation-matrix'
 
+import ClickEventHandler from './ClickEventHandler'
 import {
   getDistanceBetweenPoints,
   fromDomToScene,
@@ -18,8 +19,10 @@ import {
 
 const InteractionLayer = ensuredForwardRef(({
   viewSize,
+  zoomLimits,
   viewportMatrix,
   onViewportInteraction,
+  onClick,
   children,
   ...rest
 }, ref) => {
@@ -50,8 +53,6 @@ const InteractionLayer = ensuredForwardRef(({
   }, [ref])
 
   const applyZoom = (zoomPivot, scaleFactor) => {
-    const zoomLimits = { max: 6, min: 1 }
-
     const newViewportMatrix = zoom(
       viewportMatrix,
       zoomPivot,
@@ -186,38 +187,46 @@ const InteractionLayer = ensuredForwardRef(({
   }
 
   return (
-    <svg
-      {...rest}
-      viewBox={`
-        0
-        0
-        ${viewSize.width}
-        ${viewSize.height}
-      `}
-      style={{
-        touchAction: 'none',
-        width: '100%',
-        height: '100%'
-      }}
-      onWheel={handleWheel}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={stopPanning}
-      onMouseLeave={stopPanning}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={stopPanning}
-      ref={ref}
+    <ClickEventHandler
+      onClickEvent={onClick}
     >
-      <g transform={toSVG(viewportMatrix)}>
-        {children}
-      </g>
-    </svg>
+      <svg
+        {...rest}
+        viewBox={`
+          0
+          0
+          ${viewSize.width}
+          ${viewSize.height}
+        `}
+        style={{
+          touchAction: 'none',
+          width: '100%',
+          height: '100%'
+        }}
+        onWheel={handleWheel}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={stopPanning}
+        onMouseLeave={stopPanning}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={stopPanning}
+        ref={ref}
+      >
+        <g transform={toSVG(viewportMatrix)}>
+          {children}
+        </g>
+      </svg>
+    </ClickEventHandler>
   )
 })
 
 InteractionLayer.defaultProps = {
-  viewportMatrix: identity()
+  viewportMatrix: identity(),
+  zoomLimits: {
+    min: 1,
+    max: 6
+  }
 }
 
 InteractionLayer.propTypes = {
@@ -232,6 +241,10 @@ InteractionLayer.propTypes = {
     d: PropTypes.number,
     e: PropTypes.number,
     f: PropTypes.number
+  }),
+  zoomLimits: PropTypes.exact({
+    min: PropTypes.number,
+    max: PropTypes.number
   }),
   onViewportInteraction: PropTypes.func,
   children: PropTypes.node

@@ -2,12 +2,14 @@ import React, { useState } from 'react'
 import { identity } from 'transformation-matrix'
 
 import { storiesOf } from '@storybook/react'
+import { text, object } from '@storybook/addon-knobs'
+import { action } from '@storybook/addon-actions'
 
 import worldMapImage from '../static/world-map.svg'
 
 import Interaction from '../src'
 
-const Demo = props => {
+const Demo = ({ viewSize, zoomLimits, onClick }) => {
   const [viewportMatrix, setViewportMatrix] = useState(identity())
 
   return (
@@ -19,9 +21,11 @@ const Demo = props => {
       }}
     >
       <Interaction
-        viewSize={{ width: 100, height: 100 }}
+        viewSize={viewSize}
+        zoomLimits={zoomLimits}
         viewportMatrix={viewportMatrix}
         onViewportInteraction={setViewportMatrix}
+        onClick={onClick}
       >
         <image
           xlinkHref={worldMapImage}
@@ -35,5 +39,30 @@ const Demo = props => {
 
 storiesOf('Koobin', module)
   .add('react-interaction', () => {
-    return <Demo />
+
+    const viewSize = object(
+      'viewSize',
+      {
+        width: 100,
+        height: 100
+      }
+    )
+
+    const zoomLimits = object(
+      'zoomLimits',
+      {
+        min: 1,
+        max: 6
+      }
+    )
+
+    const onClickAction = action('Click event handler')
+
+    return (
+      <Demo
+        viewSize={viewSize}
+        zoomLimits={zoomLimits}
+        onClick={onClickAction}
+      />
+    )
   })

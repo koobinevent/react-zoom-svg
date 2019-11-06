@@ -20,6 +20,7 @@
     "prepare": "yarn run build"
   },
   "dependencies": {
+    "is-callable": "^1.1.4",
     "prop-types": "^15.7.2",
     "react-fast-compare": "^2.0.4",
     "react-use": "^13.2.0",
@@ -36,6 +37,7 @@
     "@babel/preset-env": "^7.6.3",
     "@babel/preset-react": "^7.6.3",
     "@storybook/addon-actions": "^5.2.5",
+    "@storybook/addon-knobs": "^5.2.5",
     "@storybook/addon-links": "^5.2.5",
     "@storybook/addons": "^5.2.5",
     "@storybook/react": "^5.2.5",

@@ -20,6 +20,8 @@ import {
 const InteractionLayer = ensuredForwardRef(({
   viewSize,
   zoomLimits,
+  disableZoom,
+  disablePan,
   viewportMatrix,
   onViewportInteraction,
   onClick,
@@ -95,19 +97,21 @@ const InteractionLayer = ensuredForwardRef(({
   }
 
   const handleWheel = e => {
-    const { deltaY, clientX, clientY } = e
+    if (!disableZoom) {
+      const { deltaY, clientX, clientY } = e
 
-    const zoomPivot = fromDomToScene(
-      getSceneCTM(),
-      {
-        x: clientX,
-        y: clientY
-      }
-    )
+      const zoomPivot = fromDomToScene(
+        getSceneCTM(),
+        {
+          x: clientX,
+          y: clientY
+        }
+      )
 
-    const scaleFactor = deltaY * 0.01
+      const scaleFactor = deltaY * 0.01
 
-    applyZoom(zoomPivot, scaleFactor)
+      applyZoom(zoomPivot, scaleFactor)
+    }
   }
 
   const handleMouseDown = e => {
@@ -119,7 +123,7 @@ const InteractionLayer = ensuredForwardRef(({
   }
 
   const handleMouseMove = e => {
-    if (initialPanningPoint.current) {
+    if (initialPanningPoint.current && !disablePan) {
       const { clientX, clientY } = e
       const finalPanningPoint = { x: clientX, y: clientY }
       applyPan(finalPanningPoint)
@@ -141,7 +145,7 @@ const InteractionLayer = ensuredForwardRef(({
   }
 
   const handleTouchMove = e => {
-    if (e.touches.length === 2) handlePinchMove(e)
+    if (e.touches.length === 2 && !disableZoom) handlePinchMove(e)
     if (e.touches.length === 1) handlePanMove(e)
   }
 
@@ -226,7 +230,9 @@ InteractionLayer.defaultProps = {
   zoomLimits: {
     min: 1,
     max: 6
-  }
+  },
+  disableZoom: false,
+  disablePan: false
 }
 
 InteractionLayer.propTypes = {
@@ -246,6 +252,8 @@ InteractionLayer.propTypes = {
     min: PropTypes.number,
     max: PropTypes.number
   }),
+  disableZoom: PropTypes.bool,
+  disablePan: PropTypes.bool,
   onViewportInteraction: PropTypes.func,
   children: PropTypes.node
 }

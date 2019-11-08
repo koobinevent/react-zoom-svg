@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { identity } from 'transformation-matrix'
 
 import { storiesOf } from '@storybook/react'
@@ -9,17 +9,40 @@ import worldMapImage from '../static/square.svg'
 
 import Interaction from '../src'
 
-const Demo = ({ zoomLimits, panLimits, disableZoom, disablePan, onClick }) => {
+const Demo = ({ containerSize, zoomLimits, disableZoom, disablePan, onClick }) => {
   const [viewportMatrix, setViewportMatrix] = useState(identity())
+
+  const [panLimits, setPanLimits] = useState(true)
+
+  useEffect(() => {
+    let limits = {
+      top: 0,
+      bottom: 0,
+      left: 0,
+      right: 0
+    }
+
+    const aspectRatio = containerSize.height / containerSize.width
+    if (aspectRatio > 1) {
+      const ratioCorrection = (aspectRatio - 1) * 50
+      limits.top = ratioCorrection
+      limits.bottom = ratioCorrection
+    } else {
+      const ratioCorrection = (Math.pow(aspectRatio, -1) - 1) * 50
+      limits.left = ratioCorrection
+      limits.right = ratioCorrection
+    }
+    setPanLimits(limits)
+  }, [containerSize])
 
   return (
     <div
       style={{
-        width: '50vw',
-        height: '50vh',
+        width: `${containerSize.width}px`,
+        height: `${containerSize.height}px`,
         borderStyle: 'solid',
         borderWidth: '10px',
-        borderColor: 'lightgrey'
+        borderColor: 'lightgrey',
       }}
     >
       <Interaction
@@ -42,7 +65,15 @@ const Demo = ({ zoomLimits, panLimits, disableZoom, disablePan, onClick }) => {
 }
 
 storiesOf('react-interaction', module)
-  .add('default', () => {
+  .add('containerSize', () => {
+
+    const containerSize = object(
+      'containerSize',
+      {
+        width: 320,
+        height: 180
+      }
+    )
 
     const disableZoom = boolean('disableZoom', false)
     const disablePan = boolean('disablePan', false)
@@ -55,17 +86,12 @@ storiesOf('react-interaction', module)
       }
     )
 
-    const panLimits = boolean(
-      'panLimits',
-      false
-    )
-
     const onClickAction = action('Click event handler')
 
     return (
       <Demo
+        containerSize={containerSize}
         zoomLimits={zoomLimits}
-        panLimits={panLimits}
         disableZoom={disableZoom}
         disablePan={disablePan}
         onClick={onClickAction}

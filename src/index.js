@@ -18,8 +18,8 @@ import {
 } from './utils'
 
 const InteractionLayer = ensuredForwardRef(({
-  viewSize,
   zoomLimits,
+  panLimits,
   disableZoom,
   disablePan,
   viewportMatrix,
@@ -28,6 +28,13 @@ const InteractionLayer = ensuredForwardRef(({
   children,
   ...rest
 }, ref) => {
+  const mapLimits = useRef({
+    minX: 0,
+    minY: 0,
+    maxX: 100,
+    maxY: 100
+  })
+  const limits = useRef(mapLimits.current)
   const initialPanningPoint = useRef(null)
   const lastDistance = useRef(null)
 
@@ -54,14 +61,42 @@ const InteractionLayer = ensuredForwardRef(({
     }
   }, [ref])
 
+  useEffect(() => {
+    if (panLimits) {
+      const mapL = mapLimits.current
+      let panL = {
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0
+      }
+      if (typeof panLimits === 'number') {
+        panL = {
+          top: panLimits,
+          right: panLimits,
+          bottom: panLimits,
+          left: panLimits
+        }
+      } else if (typeof panLimits === 'object') {
+        panL = panLimits
+      }
+      limits.current = {
+        minX: mapL.minX - panL.left,
+        minY: mapL.minY - panL.top,
+        maxX: mapL.maxX + panL.right,
+        maxY: mapL.maxY + panL.bottom
+      }
+    }
+  }, [panLimits])
+
   const applyZoom = (zoomPivot, scaleFactor) => {
     const newViewportMatrix = zoom(
       viewportMatrix,
       zoomPivot,
       scaleFactor,
       zoomLimits,
-      viewSize,
-      viewSize // this are the limits
+      mapLimits.current,
+      panLimits ? limits.current : undefined // this are the limits
     )
     if (!deepEqual(viewportMatrix, newViewportMatrix)) {
       updateViewportMatrix(newViewportMatrix)
@@ -78,13 +113,13 @@ const InteractionLayer = ensuredForwardRef(({
       getSceneCTM(),
       finalPanningPoint
     )
-
+    
     const newViewportMatrix = pan(
       viewportMatrix,
       originPoint,
       targetPoint,
-      viewSize,
-      viewSize // this are the limits
+      mapLimits.current,
+      panLimits ? limits.current : undefined // this are the limits
     )
 
     if (!deepEqual(viewportMatrix, newViewportMatrix)) {
@@ -197,10 +232,10 @@ const InteractionLayer = ensuredForwardRef(({
       <svg
         {...rest}
         viewBox={`
-          0
-          0
-          ${viewSize.width}
-          ${viewSize.height}
+          ${mapLimits.current.minX}
+          ${mapLimits.current.minY}
+          ${mapLimits.current.maxX}
+          ${mapLimits.current.maxY}
         `}
         style={{
           touchAction: 'none',
@@ -231,15 +266,12 @@ InteractionLayer.defaultProps = {
     min: 1,
     max: 6
   },
+  panLimits: false,
   disableZoom: false,
   disablePan: false
 }
 
 InteractionLayer.propTypes = {
-  viewSize: PropTypes.exact({
-    width: PropTypes.number,
-    height: PropTypes.number
-  }),
   viewportMatrix: PropTypes.exact({
     a: PropTypes.number,
     b: PropTypes.number,
@@ -252,6 +284,16 @@ InteractionLayer.propTypes = {
     min: PropTypes.number,
     max: PropTypes.number
   }),
+  panLimits: PropTypes.oneOfType([
+    PropTypes.bool,
+    PropTypes.number,
+    PropTypes.exact({
+      top: PropTypes.number,
+      right: PropTypes.number,
+      bottom: PropTypes.number,
+      left: PropTypes.number
+    })
+  ]),
   disableZoom: PropTypes.bool,
   disablePan: PropTypes.bool,
   onViewportInteraction: PropTypes.func,

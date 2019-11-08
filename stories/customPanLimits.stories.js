@@ -42,7 +42,7 @@ const Demo = ({ zoomLimits, panLimits, disableZoom, disablePan, onClick }) => {
 }
 
 storiesOf('react-interaction', module)
-  .add('default', () => {
+  .add('customPanLimits', () => {
 
     const disableZoom = boolean('disableZoom', false)
     const disablePan = boolean('disablePan', false)
@@ -55,9 +55,14 @@ storiesOf('react-interaction', module)
       }
     )
 
-    const panLimits = boolean(
+    const panLimits = object(
       'panLimits',
-      false
+      {
+        top: 0,
+        right: -10,
+        bottom: 0,
+        left: -10
+      }
     )
 
     const onClickAction = action('Click event handler')

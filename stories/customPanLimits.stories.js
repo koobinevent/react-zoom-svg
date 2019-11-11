@@ -28,7 +28,7 @@ const Demo = ({ zoomLimits, panLimits, disableZoom, disablePan, onClick }) => {
         disableZoom={disableZoom}
         disablePan={disablePan}
         viewportMatrix={viewportMatrix}
-        onViewportInteraction={setViewportMatrix}
+        onViewportInteraction={({ matrix }) => setViewportMatrix(matrix)}
         onClick={onClick}
       >
         <image

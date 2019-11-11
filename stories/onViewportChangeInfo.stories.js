@@ -11,38 +11,53 @@ import Interaction from '../src'
 
 const Demo = ({ zoomLimits, panLimits, disableZoom, disablePan, onClick }) => {
   const [viewportMatrix, setViewportMatrix] = useState(identity())
+  const [interactionType, setInteractionType] = useState(undefined)
+
+  const handleViewportInteraction = ({ matrix, type }) => {
+    setViewportMatrix(matrix)
+    setInteractionType(type)
+  }
 
   return (
-    <div
-      style={{
-        width: '50vw',
-        height: '50vh',
-        borderStyle: 'solid',
-        borderWidth: '10px',
-        borderColor: 'lightgrey'
-      }}
-    >
-      <Interaction
-        zoomLimits={zoomLimits}
-        panLimits={panLimits}
-        disableZoom={disableZoom}
-        disablePan={disablePan}
-        viewportMatrix={viewportMatrix}
-        onViewportInteraction={({ matrix }) => setViewportMatrix(matrix)}
-        onClick={onClick}
+    <>
+      <div
+        style={{
+          width: '50vw',
+          height: '50vh',
+          borderStyle: 'solid',
+          borderWidth: '10px',
+          borderColor: 'lightgrey'
+        }}
       >
-        <image
-          xlinkHref={worldMapImage}
-          width='100%'
-          height='100%'
-        />
-      </Interaction>
-    </div>
+        <Interaction
+          zoomLimits={zoomLimits}
+          panLimits={panLimits}
+          disableZoom={disableZoom}
+          disablePan={disablePan}
+          viewportMatrix={viewportMatrix}
+          onViewportInteraction={handleViewportInteraction}
+          onClick={onClick}
+        >
+          <image
+            xlinkHref={worldMapImage}
+            width='100%'
+            height='100%'
+          />
+        </Interaction>
+      </div>
+      <div
+        style={{
+          userSelect: 'none'
+        }}
+      >
+        Last interaction type: {interactionType}
+      </div>
+    </>
   )
 }
 
 storiesOf('react-interaction', module)
-  .add('default', () => {
+  .add('onViewportChange Interaction type', () => {
 
     const disableZoom = boolean('disableZoom', false)
     const disablePan = boolean('disablePan', false)

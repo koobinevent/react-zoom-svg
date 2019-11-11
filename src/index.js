@@ -38,9 +38,12 @@ const InteractionLayer = ensuredForwardRef(({
   const initialPanningPoint = useRef(null)
   const lastDistance = useRef(null)
 
-  const updateViewportMatrix = useCallback(newViewportMatrix => {
+  const updateViewportMatrix = useCallback((newViewportMatrix, type) => {
     onViewportInteraction instanceof Function &&
-      onViewportInteraction(newViewportMatrix)
+      onViewportInteraction({
+        matrix: newViewportMatrix,
+        type
+      })
   }, [onViewportInteraction])
 
   // Disable default behaviour of touch events to make the pinch and tap work in
@@ -99,7 +102,7 @@ const InteractionLayer = ensuredForwardRef(({
       panLimits ? limits.current : undefined // this are the limits
     )
     if (!deepEqual(viewportMatrix, newViewportMatrix)) {
-      updateViewportMatrix(newViewportMatrix)
+      updateViewportMatrix(newViewportMatrix, 'zoom')
     }
   }
 
@@ -124,7 +127,7 @@ const InteractionLayer = ensuredForwardRef(({
 
     if (!deepEqual(viewportMatrix, newViewportMatrix)) {
       // Apply pan
-      updateViewportMatrix(newViewportMatrix)
+      updateViewportMatrix(newViewportMatrix, 'pan')
 
       // Save the last panning point
       initialPanningPoint.current = finalPanningPoint

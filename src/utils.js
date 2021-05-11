@@ -26,8 +26,8 @@ export const zoom = (
   pivot,
   scaleIncrement,
   limits,
-  mapSize,
-  viewerSize
+  mapLimits,
+  panLimits
 ) => {
   const originalPivot = applyInverseToPoint(matrix, pivot)
   const incrementRatio = 1 + scaleIncrement
@@ -39,10 +39,14 @@ export const zoom = (
     limits
   )
 
+  if (!mapLimits || !panLimits) {
+    return zoomLimitedMatrix
+  }
+
   return limitPan(
     zoomLimitedMatrix,
-    mapSize,
-    viewerSize
+    mapLimits,
+    panLimits
   )
 }
 
@@ -97,8 +101,8 @@ export const pan = (
   currentTransformationMatrix,
   originPoint,
   targetPoint,
-  mapSize,
-  viewerSize
+  mapLimits,
+  panLimits
 ) => {
   const originalOriginPoint = applyInverseToPoint(
     currentTransformationMatrix,
@@ -117,15 +121,19 @@ export const pan = (
 
   const pannedMatrix = applyPan(currentTransformationMatrix, translateDelta)
 
+  if (!mapLimits || !panLimits) {
+    return pannedMatrix
+  }
+
   return limitPan(
     pannedMatrix,
-    mapSize,
-    viewerSize
+    mapLimits,
+    panLimits
   )
 }
 
-const limitPan = (matrix, mapSize, viewerSize) => {
-  const { x, y } = shiftPanOverflow(matrix, mapSize, viewerSize)
+const limitPan = (matrix, mapLimits, panLimits) => {
+  const { x, y } = shiftPanOverflow(matrix, mapLimits, panLimits)
 
   return transform(
     translate(x, y),
@@ -133,15 +141,15 @@ const limitPan = (matrix, mapSize, viewerSize) => {
   )
 }
 
-const shiftPanOverflow = (matrix, mapSize, viewerSize) => {
+const shiftPanOverflow = (matrix, mapLimits, panLimits) => {
   const { scale } = decompose(matrix)
   const mapOrigin = applyToPoint(matrix, { x: 0, y: 0 })
 
   const currentScale = scale.sx
 
   const scaledMapSize = {
-    width: mapSize.width * currentScale,
-    height: mapSize.height * currentScale
+    width: mapLimits.maxX * currentScale,
+    height: mapLimits.maxY * currentScale
   }
 
   const mapBoundaries = {
@@ -156,36 +164,36 @@ const shiftPanOverflow = (matrix, mapSize, viewerSize) => {
     left: false
   }
 
-  if (scaledMapSize.width > viewerSize.width) {
-    if (scaledMapSize.height > viewerSize.height) {
+  if (scaledMapSize.width > panLimits.maxX - panLimits.minX) {
+    if (scaledMapSize.height > panLimits.maxY - panLimits.minY) {
       isMapOverflowing = {
-        right: mapBoundaries.right < viewerSize.width,
-        left: mapOrigin.x > 0,
-        top: mapOrigin.y > 0,
-        bottom: mapBoundaries.bottom < viewerSize.height
+        right: mapBoundaries.right < panLimits.maxX,
+        left: mapOrigin.x > panLimits.minX,
+        top: mapOrigin.y > panLimits.minY,
+        bottom: mapBoundaries.bottom < panLimits.maxY
       }
     } else {
       isMapOverflowing = {
-        right: mapBoundaries.right < viewerSize.width,
-        left: mapOrigin.x > 0,
-        top: mapOrigin.y < 0,
-        bottom: mapBoundaries.bottom > viewerSize.height
+        right: mapBoundaries.right < panLimits.maxX,
+        left: mapOrigin.x > panLimits.minX,
+        top: mapOrigin.y < panLimits.minY,
+        bottom: mapBoundaries.bottom > panLimits.maxY
       }
     }
   } else {
-    if (scaledMapSize.height > viewerSize.height) {
+    if (scaledMapSize.height > panLimits.maxY - panLimits.minY) {
       isMapOverflowing = {
-        right: mapBoundaries.right > viewerSize.width,
-        left: mapOrigin.x < 0,
-        top: mapOrigin.y > 0,
-        bottom: mapBoundaries.bottom < viewerSize.height
+        right: mapBoundaries.right > panLimits.maxX,
+        left: mapOrigin.x < panLimits.minX,
+        top: mapOrigin.y > panLimits.minY,
+        bottom: mapBoundaries.bottom < panLimits.maxY
       }
     } else {
       isMapOverflowing = {
-        right: mapBoundaries.right > viewerSize.width,
-        left: mapOrigin.x < 0,
-        top: mapOrigin.y < 0,
-        bottom: mapBoundaries.bottom > viewerSize.height
+        right: mapBoundaries.right > panLimits.maxX,
+        left: mapOrigin.x < panLimits.minX,
+        top: mapOrigin.y < panLimits.minY,
+        bottom: mapBoundaries.bottom > panLimits.maxY
       }
     }
   }
@@ -196,19 +204,19 @@ const shiftPanOverflow = (matrix, mapSize, viewerSize) => {
   }
 
   if (isMapOverflowing.top) {
-    translateDelta.y = mapOrigin.y
+    translateDelta.y = mapOrigin.y - panLimits.minY
   }
 
   if (isMapOverflowing.right) {
-    translateDelta.x = mapBoundaries.right - viewerSize.width
+    translateDelta.x = mapBoundaries.right - panLimits.maxX
   }
 
   if (isMapOverflowing.left) {
-    translateDelta.x = mapOrigin.x
+    translateDelta.x = mapOrigin.x - panLimits.minX
   }
 
   if (isMapOverflowing.bottom) {
-    translateDelta.y = mapBoundaries.bottom - viewerSize.height
+    translateDelta.y = mapBoundaries.bottom - panLimits.maxY
   }
 
   return {
